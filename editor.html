@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0A1E">
+  <title>Customize Card — Wishly</title>
+  <meta name="description" content="Customize your personalised wish card with the Wishly mobile editor.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/editor.css" rel="stylesheet">
+  <script>
+    (function () {
+      const saved = localStorage.getItem('wishly_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#F8FAFC' : '#0F0A1E');
+    })();
+  </script>
+</head>
+<body style="overflow:hidden">
+
+  <!-- ── Editor Page Container ────────────────────────────── -->
+  <div class="editor-page">
+
+    <!-- Top Bar -->
+    <div class="editor-topbar">
+      <button id="btnEditorBack" class="editor-action-btn" aria-label="Go back">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <span class="card-name" id="editorCardName">Your Card</span>
+      <button id="btnThemeToggle" class="editor-action-btn" aria-label="Toggle Night/Day Mode" title="Toggle Night/Day Mode">
+        <i class="bi bi-sun-fill" style="color:var(--secondary)"></i>
+      </button>
+      <button id="btnUndo" class="editor-action-btn" aria-label="Undo" disabled>
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
+      <button id="btnRedo" class="editor-action-btn" aria-label="Redo" disabled>
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button id="btnPreview" class="editor-action-btn" style="border-color:var(--primary);color:var(--primary-light)" aria-label="Preview card">
+        <i class="bi bi-eye"></i>
+      </button>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="editor-canvas-area editor-area" id="editorCanvasArea">
+      <div class="canvas-wrapper editor-area" id="canvasWrapper">
+        <canvas id="editorCanvas" aria-label="Card canvas editor"></canvas>
+      </div>
+
+      <!-- Selection hint -->
+      <div id="selectionHint" style="
+        position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+        background:rgba(0,0,0,.6);border-radius:var(--radius-full);
+        padding:5px 14px;font-size:.75rem;color:rgba(255,255,255,.8);
+        pointer-events:none;display:none;white-space:nowrap;
+      ">Tap an element to select · Double-tap to edit text</div>
+    </div>
+
+    <!-- Bottom Toolbar -->
+    <div class="editor-toolbar">
+      <button class="toolbar-tool" data-tool="text" aria-label="Text tool">
+        <i class="bi bi-fonts"></i>
+        <span>Text</span>
+      </button>
+      <button class="toolbar-tool" data-tool="elements" aria-label="Add elements">
+        <i class="bi bi-emoji-smile"></i>
+        <span>Elements</span>
+      </button>
+      <button class="toolbar-tool" data-tool="photo" aria-label="Add photo">
+        <i class="bi bi-image"></i>
+        <span>Photo</span>
+      </button>
+      <button class="toolbar-tool" data-tool="background" aria-label="Change background">
+        <i class="bi bi-palette"></i>
+        <span>Background</span>
+      </button>
+      <button class="toolbar-tool" data-tool="more" aria-label="More options">
+        <i class="bi bi-three-dots"></i>
+        <span>More</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ── Hidden file inputs ────────────────────────────────── -->
+  <input type="file" id="photoFileInput" accept="image/*" style="display:none" aria-label="Upload photo">
+  <input type="file" id="bgImageInput"   accept="image/*" style="display:none" aria-label="Upload background image">
+
+  <!-- ============================================================
+       BOTTOM SHEET: TEXT
+  ============================================================ -->
+  <div class="offcanvas offcanvas-bottom sheet-custom editor-sheet" tabindex="-1" id="sheetText"
+       style="max-height:80vh">
+    <div class="offcanvas-body pt-0">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Edit Text</div>
+
+      <!-- Font Family -->
+      <div class="text-control-row">
+        <span class="text-control-label">Font</span>
+        <select id="textFontFamily" class="font-select flex-1" aria-label="Select font family">
+          <option value="Outfit">Outfit (Modern)</option>
+          <option value="Playfair Display">Playfair Display (Elegant)</option>
+          <option value="Dancing Script">Dancing Script (Romantic)</option>
+          <option value="Nunito">Nunito (Cute)</option>
+          <option value="Cormorant Garamond">Cormorant Garamond (Luxury)</option>
+          <option value="Inter">Inter (Clean)</option>
+          <option value="Georgia">Georgia (Classic)</option>
+          <option value="Arial">Arial (Simple)</option>
+        </select>
+      </div>
+
+      <!-- Font Size -->
+      <div class="text-control-row">
+        <span class="text-control-label">Size</span>
+        <div class="font-size-ctrl flex-1">
+          <input type="range" id="textFontSize" min="16" max="120" value="40" aria-label="Font size">
+          <span class="font-size-val" id="textFontSizeVal">40</span>
+        </div>
+      </div>
+
+      <!-- Letter Spacing -->
+      <div class="text-control-row">
+        <span class="text-control-label">Spacing</span>
+        <div class="font-size-ctrl flex-1">
+          <input type="range" id="textLetterSpacing" min="0" max="20" value="0" step="0.5" aria-label="Letter spacing">
+          <span class="font-size-val" id="textSpacingVal">0</span>
+        </div>
+      </div>
+
+      <!-- Style buttons -->
+      <div class="text-control-row">
+        <span class="text-control-label">Style</span>
+        <div class="style-btns">
+          <button id="btnBold"   class="toggle-btn" aria-label="Bold" aria-pressed="false"><i class="bi bi-type-bold"></i></button>
+          <button id="btnItalic" class="toggle-btn" aria-label="Italic" aria-pressed="false"><i class="bi bi-type-italic"></i></button>
+        </div>
+        <span class="text-control-label ms-3">Align</span>
+        <div class="align-btns">
+          <button class="toggle-btn" data-align="left"   aria-label="Align left"><i class="bi bi-text-left"></i></button>
+          <button class="toggle-btn active" data-align="center" aria-label="Align center"><i class="bi bi-text-center"></i></button>
+          <button class="toggle-btn" data-align="right"  aria-label="Align right"><i class="bi bi-text-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Color Palette -->
+      <div class="text-control-row flex-wrap gap-2 align-items-start">
+        <span class="text-control-label w-100">Color</span>
+        <div class="color-palette" id="textColorPalette">
+          <!-- JS rendered -->
+        </div>
+        <input type="color" id="textColorCustom" class="color-custom-input" value="#ffffff" title="Custom color" aria-label="Custom text color">
+      </div>
+
+      <div class="mt-3">
+        <button class="btn-secondary-custom btn-full" data-bs-dismiss="offcanvas">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       BOTTOM SHEET: ELEMENTS (Emoji + Shapes)
+  ============================================================ -->
+  <div class="offcanvas offcanvas-bottom sheet-custom editor-sheet" tabindex="-1" id="sheetElements"
+       style="max-height:75vh">
+    <div class="offcanvas-body pt-0">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Add Elements</div>
+
+      <!-- Emoji category chips -->
+      <div class="filter-chips mb-3 px-0" id="emojiCategoryChips">
+        <button class="chip active" data-value="popular">Popular</button>
+        <button class="chip" data-value="love">Love</button>
+        <button class="chip" data-value="nature">Nature</button>
+        <button class="chip" data-value="party">Party</button>
+        <button class="chip" data-value="animals">Animals</button>
+        <button class="chip" data-value="symbols">Symbols</button>
+      </div>
+
+      <!-- Emoji grid -->
+      <div class="emoji-grid" id="emojiGrid" aria-label="Emoji picker">
+        <!-- JS rendered -->
+      </div>
+
+      <div class="divider-text my-3"><span>Shapes & Stickers</span></div>
+
+      <!-- Shape elements -->
+      <div class="elements-grid">
+        <button class="element-btn" data-shape="star"   data-color="#FFD700" aria-label="Add star">
+          <i class="bi bi-star-fill" style="color:#FFD700"></i><span>Star</span>
+        </button>
+        <button class="element-btn" data-shape="circle" data-color="rgba(255,255,255,0.3)" aria-label="Add circle">
+          <i class="bi bi-circle-fill" style="color:#C084FC"></i><span>Circle</span>
+        </button>
+        <button class="element-btn" data-shape="heart" data-color="#F43F5E" aria-label="Add heart">
+          <span class="el-emoji">❤️</span><span>Heart</span>
+        </button>
+        <button class="element-btn" data-shape="flower" data-color="#FB923C" aria-label="Add flower">
+          <span class="el-emoji">🌸</span><span>Flower</span>
+        </button>
+        <button class="element-btn" data-shape="balloon" data-color="#38BDF8" aria-label="Add balloon">
+          <span class="el-emoji">🎈</span><span>Balloon</span>
+        </button>
+        <button class="element-btn" data-shape="confetti" data-color="#F59E0B" aria-label="Add confetti">
+          <span class="el-emoji">🎊</span><span>Confetti</span>
+        </button>
+        <button class="element-btn" data-shape="ribbon" data-color="#EC4899" aria-label="Add ribbon">
+          <span class="el-emoji">🎀</span><span>Ribbon</span>
+        </button>
+        <button class="element-btn" data-shape="sparkle" data-color="#FBBF24" aria-label="Add sparkle">
+          <span class="el-emoji">✨</span><span>Sparkle</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       BOTTOM SHEET: BACKGROUND
+  ============================================================ -->
+  <div class="offcanvas offcanvas-bottom sheet-custom editor-sheet" tabindex="-1" id="sheetBackground"
+       style="max-height:70vh">
+    <div class="offcanvas-body pt-0">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Background</div>
+
+      <p class="text-muted-custom small mb-2">Gradient Presets</p>
+      <div class="scroll-row px-0 mb-3" id="bgGradientRow" aria-label="Background gradients">
+        <!-- JS rendered -->
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="text-muted-custom small mb-2">Solid Color</p>
+      <div class="text-control-row">
+        <span class="text-control-label">Color</span>
+        <input type="color" id="bgSolidColor" class="color-custom-input" style="width:56px;height:40px;border-radius:var(--radius-sm)" value="#1a0a3d" aria-label="Background solid color">
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="text-muted-custom small mb-2">Upload Image</p>
+      <label class="photo-upload-btn" for="bgImageInput" role="button">
+        <i class="bi bi-image-alt"></i>
+        <span>Choose from Gallery</span>
+        <span class="text-muted-custom" style="font-size:.7rem">JPG, PNG, WEBP</span>
+      </label>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       BOTTOM SHEET: MORE (Delete, Scale, Rotate, Opacity)
+  ============================================================ -->
+  <div class="offcanvas offcanvas-bottom sheet-custom editor-sheet" tabindex="-1" id="sheetMore"
+       style="max-height:65vh">
+    <div class="offcanvas-body pt-0">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Element Options</div>
+
+      <!-- Scale -->
+      <div class="text-control-row mb-3">
+        <span class="text-control-label">Scale</span>
+        <div class="font-size-ctrl flex-1">
+          <input type="range" id="elScaleSlider" min="0.2" max="5" step="0.1" value="1" aria-label="Element scale">
+          <span class="font-size-val" id="elScaleVal">1x</span>
+        </div>
+      </div>
+
+      <!-- Rotate -->
+      <div class="text-control-row mb-3">
+        <span class="text-control-label">Rotate</span>
+        <div class="font-size-ctrl flex-1">
+          <input type="range" id="elRotateSlider" min="-180" max="180" step="1" value="0" aria-label="Element rotation">
+          <span class="font-size-val" id="elRotateVal">0°</span>
+        </div>
+      </div>
+
+      <!-- Opacity -->
+      <div class="text-control-row mb-3">
+        <span class="text-control-label">Opacity</span>
+        <div class="font-size-ctrl flex-1">
+          <input type="range" id="elOpacitySlider" min="0.1" max="1" step="0.05" value="1" aria-label="Element opacity">
+          <span class="font-size-val" id="elOpacityVal">100%</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button id="btnDeleteElement" class="btn-secondary-custom btn-full" style="border-color:var(--danger);color:var(--danger)">
+        <i class="bi bi-trash3"></i> Delete Selected Element
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PREVIEW OVERLAY
+  ============================================================ -->
+  <div id="previewOverlay" class="d-none" style="
+    position:fixed;inset:0;z-index:2000;background:var(--bg);
+    display:flex;flex-direction:column;align-items:stretch;
+  ">
+    <!-- Preview topbar -->
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.75rem;border-bottom:1px solid var(--border-light);flex-shrink:0">
+      <button id="btnHidePreview" class="editor-action-btn" aria-label="Back to editor">
+        <i class="bi bi-pencil-square"></i>
+      </button>
+      <span class="fw-bold" style="flex:1;text-align:center;font-size:.9rem">Preview</span>
+      <span class="badge-custom">Final Look</span>
+    </div>
+
+    <!-- Canvas preview -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:1rem;overflow:hidden">
+      <canvas id="previewCanvas" style="max-width:100%;max-height:100%;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg)"></canvas>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="padding:.75rem 1rem;padding-bottom:calc(.75rem + env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--border-light)">
+      <div class="d-grid gap-2">
+        <div class="d-flex gap-2">
+          <button id="btnDownloadPNG" class="btn-primary-custom flex-1" style="min-height:48px;font-size:.9rem">
+            <i class="bi bi-download"></i> PNG
+          </button>
+          <button id="btnDownloadJPG" class="btn-secondary-custom flex-1" style="min-height:48px;font-size:.9rem">
+            <i class="bi bi-download"></i> JPG
+          </button>
+          <button id="btnShareCard" class="btn-secondary-custom flex-1" style="min-height:48px;font-size:.9rem;width:48px;flex:0 0 auto;padding:0;justify-content:center">
+            <i class="bi bi-share-fill"></i>
+          </button>
+        </div>
+        <button id="btnCreateAnother" class="btn-secondary-custom btn-full" style="min-height:44px;font-size:.85rem">
+          <i class="bi bi-plus-circle"></i> Create Another Card
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/data/occasions.js"></script>
+  <script src="assets/js/data/templates.js"></script>
+  <script src="assets/js/data/wishes.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/download.js"></script>
+  <script src="assets/js/share.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/editor.js"></script>
+  <script src="assets/js/protection.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Guard ────────────────────────────────────────────
+    const saved = loadCardState();
+    if (saved) AppState.restore(saved);
+
+    if (!AppState.selectedTemplate) {
+      window.location.href = 'occasions.html';
+      return;
+    }
+
+    // ── Render color palette in text sheet ────────────────
+    const palette = document.getElementById('textColorPalette');
+    if (palette) {
+      const colors = ['#FFFFFF','#F1F5F9','#94A3B8','#1E293B','#0F172A',
+                      '#EF4444','#F97316','#F59E0B','#84CC16','#10B981',
+                      '#14B8A6','#3B82F6','#8B5CF6','#EC4899','#FFD700'];
+      colors.forEach(c => {
+        const sw = document.createElement('button');
+        sw.className = 'color-swatch';
+        sw.dataset.color = c;
+        sw.style.background = c;
+        sw.title = c;
+        sw.setAttribute('aria-label', `Color ${c}`);
+        palette.appendChild(sw);
+      });
+    }
+
+    // ── Render gradient swatches in background sheet ──────
+    const bgRow = document.getElementById('bgGradientRow');
+    const template = AppState.selectedTemplate;
+    if (bgRow && template) {
+      const gradientsForOcc = getGradientsForOccasion(template.occasionId || 'other');
+      // Add some universal gradients too
+      const allGrads = [
+        ...gradientsForOcc,
+        ['#0F0A1E','#1A1033'],
+        ['#1a1a2e','#16213e'],
+        ['#0d0221','#21053d'],
+        ['#232526','#414345'],
+        ['#000000','#434343'],
+      ];
+
+      allGrads.forEach(grad => {
+        const sw = document.createElement('div');
+        sw.className = 'bg-swatch';
+        sw.dataset.gradient = JSON.stringify(grad);
+        sw.style.background = `linear-gradient(135deg, ${grad[0]}, ${grad[1]})`;
+        sw.setAttribute('aria-label', `Gradient ${grad[0]} to ${grad[1]}`);
+        sw.setAttribute('role', 'button');
+        sw.setAttribute('tabindex', '0');
+        bgRow.appendChild(sw);
+      });
+    }
+
+    // ── Render initial emoji pack ─────────────────────────
+    renderEmojiPack('popular');
+
+    // ── Sync slider display values ─────────────────────────
+    document.getElementById('elScaleSlider')?.addEventListener('input', function () {
+      document.getElementById('elScaleVal').textContent = parseFloat(this.value).toFixed(1) + 'x';
+    });
+
+    document.getElementById('elRotateSlider')?.addEventListener('input', function () {
+      document.getElementById('elRotateVal').textContent = this.value + '°';
+    });
+
+    document.getElementById('elOpacitySlider')?.addEventListener('input', function () {
+      document.getElementById('elOpacityVal').textContent = Math.round(this.value * 100) + '%';
+    });
+
+    document.getElementById('textLetterSpacing')?.addEventListener('input', function () {
+      document.getElementById('textSpacingVal').textContent = this.value;
+    });
+
+    // ── Show hint after a short delay ─────────────────────
+    setTimeout(() => {
+      const hint = document.getElementById('selectionHint');
+      if (hint) {
+        hint.style.display = '';
+        setTimeout(() => { hint.style.display = 'none'; }, 4000);
+      }
+    }, 1200);
+
+    // ── Back button ───────────────────────────────────────
+    document.getElementById('btnEditorBack')?.addEventListener('click', () => {
+      history.back();
+    });
+
+  })();
+  </script>
+</body>
+</html>

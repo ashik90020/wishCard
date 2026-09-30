@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0A1E">
+  <title>Wishly — Create Beautiful Wish Cards</title>
+  <meta name="description" content="Create stunning personalised digital wish cards for birthdays, weddings, Eid, and every special occasion. Download and share in seconds.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <script>
+    (function () {
+      const saved = localStorage.getItem('wishly_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#F8FAFC' : '#0F0A1E');
+    })();
+  </script>
+</head>
+<body class="has-bottom-nav">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <header class="app-header">
+    <span class="logo">Wishly ✨</span>
+    <div class="header-actions">
+      <button class="header-icon-btn" id="btnThemeToggle" aria-label="Toggle Night/Day Mode" title="Toggle Night/Day Mode">
+        <i class="bi bi-sun-fill" style="color:var(--secondary)"></i>
+      </button>
+      <button class="header-icon-btn" id="btnHeaderSearch" aria-label="Search">
+        <i class="bi bi-search"></i>
+      </button>
+      <button class="header-icon-btn" id="btnHeaderMenu" aria-label="Menu"
+              data-bs-toggle="offcanvas" data-bs-target="#sideMenu">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Side Menu ───────────────────────────────────────── -->
+  <div class="offcanvas offcanvas-end sheet-custom" tabindex="-1" id="sideMenu">
+    <div class="offcanvas-header border-0">
+      <span class="logo fs-4">Wishly ✨</span>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body pt-0">
+      <nav class="d-flex flex-column gap-1">
+        <a href="index.html"     class="side-link active"><i class="bi bi-house-fill"></i> Home</a>
+        <a href="occasions.html" class="side-link"><i class="bi bi-grid-fill"></i> All Occasions</a>
+        <a href="favorites.html" class="side-link"><i class="bi bi-heart-fill"></i> My Favorites</a>
+        <div class="divider"></div>
+        <div class="side-link d-flex align-items-center justify-content-between" id="sideThemeToggle" style="cursor:pointer" role="button">
+          <span><i class="bi bi-circle-half"></i> Theme Mode</span>
+          <span class="badge rounded-pill bg-purple-soft" id="sideThemeBadge">Night Mode 🌙</span>
+        </div>
+        <div class="divider"></div>
+        <a href="#" class="side-link text-muted-custom small" style="cursor:default">
+          <i class="bi bi-info-circle"></i> About Wishly
+        </a>
+      </nav>
+      <div class="mt-auto pt-4">
+        <div class="card-custom">
+          <div class="card-custom-body text-center">
+            <div style="font-size:2.5rem;margin-bottom:.5rem">🎉</div>
+            <p class="fw-bold mb-1">Create a Card Now</p>
+            <p class="text-muted-custom small mb-3">Takes less than 2 minutes</p>
+            <a href="occasions.html" class="btn-primary-custom btn-full">Create Card</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Global Search Offcanvas ─────────────────────────── -->
+  <div class="offcanvas offcanvas-top" style="height:100dvh;background:var(--bg);" tabindex="-1" id="globalSearch">
+    <div class="offcanvas-header" style="border-bottom:1px solid var(--border-light);">
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      <h5 class="offcanvas-title ms-2 fw-bold">Search</h5>
+    </div>
+    <div class="offcanvas-body p-0">
+      <div class="search-bar-wrap" style="padding-top:1rem">
+        <i class="bi bi-search search-icon"></i>
+        <input type="search" class="search-bar" id="globalSearchInput"
+               placeholder="Search occasions, cards, messages..." autocomplete="off" autofocus>
+      </div>
+      <div id="globalSearchResults" class="p-3"></div>
+    </div>
+  </div>
+
+  <!-- ── Main Content ────────────────────────────────────── -->
+  <main class="page-content">
+
+    <!-- Continue Banner -->
+    <div id="continueBanner" class="d-none mx-3 mt-3 p-3 rounded-4"
+         style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(236,72,153,0.15));border:1px solid rgba(124,58,237,0.3)">
+      <p class="fw-bold mb-1 small">Continue your card?</p>
+      <p class="text-muted-custom small mb-2">You have an unfinished card.</p>
+      <div class="d-flex gap-2">
+        <button id="btnContinueCard" class="btn-primary-custom flex-1" style="min-height:40px;font-size:0.85rem;padding:0.5rem 1rem">
+          Continue
+        </button>
+        <button id="btnStartNew" class="btn-secondary-custom" style="min-height:40px;font-size:0.85rem;padding:0.5rem 1rem">
+          Start New
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Hero ─────────────────────────────────────────── -->
+    <section class="hero-section">
+      <div class="hero-badge">
+        <i class="bi bi-stars"></i>
+        Create in seconds
+      </div>
+      <h1 class="hero-title">
+        Create Beautiful Wishes<br>
+        <span class="text-gradient">People Remember</span>
+      </h1>
+      <p class="hero-subtitle">
+        Choose a stunning card, personalise your message,<br class="d-none d-sm-inline">
+        and share your special wishes instantly.
+      </p>
+      <div class="d-flex gap-2 mb-3 flex-wrap">
+        <a href="occasions.html" class="btn-primary-custom">
+          <i class="bi bi-magic"></i> Create Your Card
+        </a>
+        <a href="#exploreSection" class="btn-secondary-custom">
+          Explore Cards <i class="bi bi-arrow-down"></i>
+        </a>
+      </div>
+
+      <!-- Scrollable preview cards -->
+      <div class="hero-scroll-preview" id="heroPreviewRow" role="list" aria-label="Card preview examples">
+      </div>
+    </section>
+
+    <!-- ── Create Card CTA ───────────────────────────────── -->
+    <section class="section-gap-sm px-3 mt-3" id="exploreSection">
+      <a href="occasions.html" class="btn-primary-custom btn-full" style="border-radius:var(--radius-lg)">
+        <i class="bi bi-magic"></i> Create Your Card Now
+      </a>
+    </section>
+
+    <!-- ── Popular Occasions ────────────────────────────── -->
+    <section class="section-gap" id="popularOccasions">
+      <div class="section-header">
+        <h2 class="section-title">Popular Occasions</h2>
+        <a href="occasions.html" class="section-link">See all <i class="bi bi-chevron-right"></i></a>
+      </div>
+      <div class="scroll-row" id="popularOccasionRow" role="list">
+        <!-- JS rendered -->
+      </div>
+    </section>
+
+    <!-- ── Trending Cards ───────────────────────────────── -->
+    <section class="section-gap">
+      <div class="section-header">
+        <h2 class="section-title">Trending Cards</h2>
+      </div>
+      <div class="scroll-row" id="trendingCardsRow" role="list">
+        <!-- JS rendered -->
+      </div>
+    </section>
+
+    <!-- ── Popular Wishes ───────────────────────────────── -->
+    <section class="section-gap">
+      <div class="section-header">
+        <h2 class="section-title">Popular Wishes ✍️</h2>
+      </div>
+      <div class="d-flex flex-column gap-2 px-3" id="popularWishesRow">
+        <!-- JS rendered -->
+      </div>
+    </section>
+
+    <!-- ── Recently Used ────────────────────────────────── -->
+    <section class="section-gap" id="recentSection" style="display:none">
+      <div class="section-header">
+        <h2 class="section-title">Recently Used</h2>
+      </div>
+      <div class="scroll-row" id="recentRow">
+      </div>
+    </section>
+
+    <!-- ── Favorites Teaser ──────────────────────────────── -->
+    <section class="section-gap" id="favSection" style="display:none">
+      <div class="section-header">
+        <h2 class="section-title">My Favorites ❤️</h2>
+        <a href="favorites.html" class="section-link">See all <i class="bi bi-chevron-right"></i></a>
+      </div>
+      <div class="scroll-row" id="favRow">
+      </div>
+    </section>
+
+    <!-- ── Footer ───────────────────────────────────────── -->
+    <footer class="text-center py-4 px-3" style="color:var(--text-subtle);font-size:0.8rem;border-top:1px solid var(--border-light);margin-top:1rem">
+      <div class="logo mb-1" style="font-size:1.2rem">Wishly ✨</div>
+      <p class="mb-0">Create. Share. Celebrate.</p>
+      <p class="mt-1" style="opacity:.5">© 2025 Wishly. All rights reserved.</p>
+    </footer>
+
+  </main>
+
+  <!-- ── Bottom Navigation ────────────────────────────────── -->
+  <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
+    <a href="index.html" class="bottom-nav-item" data-page="index.html">
+      <i class="bi bi-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="occasions.html" class="bottom-nav-item" data-page="occasions.html">
+      <i class="bi bi-grid"></i>
+      <span>Explore</span>
+    </a>
+    <a href="occasions.html" class="bottom-nav-item d-flex align-items-center justify-content-center" style="flex:0 0 auto">
+      <div class="bottom-nav-create" aria-label="Create card">
+        <i class="bi bi-plus-lg"></i>
+      </div>
+    </a>
+    <a href="favorites.html" class="bottom-nav-item" data-page="favorites.html">
+      <i class="bi bi-heart"></i>
+      <span>Favorites</span>
+    </a>
+    <a href="occasions.html" class="bottom-nav-item" data-page="search">
+      <i class="bi bi-search"></i>
+      <span>Search</span>
+    </a>
+  </nav>
+
+  <!-- ── Scripts ─────────────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/data/occasions.js"></script>
+  <script src="assets/js/data/templates.js"></script>
+  <script src="assets/js/data/wishes.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/download.js"></script>
+  <script src="assets/js/share.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/protection.js"></script>
+  <script>
+  /* ── Homepage JS ────────────────────────────────────── */
+  (function () {
+    'use strict';
+
+    // ── Hero preview cards ───────────────────────────────
+    const heroData = [
+      { grad:['#FF6B9D','#C850C0'], emoji:'🎂', title:'Happy Birthday', sub:'Birthday Cards' },
+      { grad:['#F59E0B','#EF4444'], emoji:'🎓', title:'Congratulations', sub:'Graduation Cards' },
+      { grad:['#C9D6FF','#f093fb'], emoji:'💍', title:'Wedding Day',    sub:'Wedding Cards' },
+      { grad:['#10B981','#059669'], emoji:'🌙', title:'Eid Mubarak',    sub:'Eid Cards' },
+      { grad:['#FB7185','#F43F5E'], emoji:'💖', title:'Valentine',      sub:'Love Cards' },
+      { grad:['#8B5CF6','#1E1B4B'], emoji:'🎆', title:'New Year',       sub:'Celebration Cards' },
+    ];
+
+    const heroRow = document.getElementById('heroPreviewRow');
+    if (heroRow) {
+      heroData.forEach(d => {
+        const card = document.createElement('div');
+        card.className = 'hero-card-preview';
+        card.setAttribute('role', 'listitem');
+        card.style.background = `linear-gradient(145deg, ${d.grad[0]}, ${d.grad[1]})`;
+        card.innerHTML = `
+          <div class="hero-card-inner">
+            <div class="card-emoji">${d.emoji}</div>
+            <div class="card-label">${d.title}</div>
+            <div class="card-sublabel">${d.sub}</div>
+          </div>
+        `;
+        card.addEventListener('click', () => { window.location.href = 'occasions.html'; });
+        heroRow.appendChild(card);
+      });
+    }
+
+    // ── Popular Occasions row ─────────────────────────────
+    const popularRow = document.getElementById('popularOccasionRow');
+    if (popularRow) {
+      const popular = OCCASIONS.filter(o => o.category.includes('popular')).slice(0, 8);
+      popular.forEach(occ => {
+        const item = document.createElement('a');
+        item.href = `templates.html?occasion=${occ.id}`;
+        item.className = 'd-flex flex-column align-items-center gap-1 text-decoration-none';
+        item.setAttribute('role', 'listitem');
+        item.style.cssText = 'flex:0 0 auto;width:72px;';
+        item.innerHTML = `
+          <div style="width:64px;height:64px;border-radius:var(--radius-lg);display:flex;align-items:center;
+                      justify-content:center;font-size:1.6rem;background:linear-gradient(145deg,${occ.color}33,${occ.color}22);
+                      border:1px solid ${occ.color}33">
+            <i class="bi ${occ.icon}" style="color:${occ.color}"></i>
+          </div>
+          <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-align:center;line-height:1.2">${occ.name}</span>
+        `;
+        popularRow.appendChild(item);
+      });
+    }
+
+    // ── Trending Cards (horizontal scroll previews) ──────
+    const trendingRow = document.getElementById('trendingCardsRow');
+    if (trendingRow) {
+      const trending = [
+        { grad:['#FF6B9D','#C850C0'], emoji:'🎂', name:'Elegant Birthday',    occ:'birthday' },
+        { grad:['#10B981','#059669'], emoji:'🌙', name:'Eid Mubarak Classic', occ:'eid' },
+        { grad:['#8B5CF6','#1E1B4B'], emoji:'🎆', name:'New Year Glow',       occ:'newyear' },
+        { grad:['#FBBF24','#D97706'], emoji:'🎓', name:'Graduation Gold',     occ:'graduation' },
+        { grad:['#C9D6FF','#f093fb'], emoji:'💍', name:'Wedding Elegant',     occ:'wedding' },
+        { grad:['#FB7185','#F43F5E'], emoji:'💖', name:'Valentine Romantic',  occ:'valentine' },
+      ];
+
+      trending.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'hero-card-preview';
+        card.setAttribute('role', 'listitem');
+        card.style.cssText = `background:linear-gradient(145deg,${t.grad[0]},${t.grad[1]});width:130px;height:163px;cursor:pointer`;
+        card.innerHTML = `
+          <div class="hero-card-inner">
+            <div class="card-emoji">${t.emoji}</div>
+            <div class="card-label" style="font-size:.7rem">${t.name}</div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.6);margin-top:2px">Tap to use</div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          const occ = getOccasionById(t.occ);
+          if (occ) {
+            AppState.update({ selectedOccasion: occ });
+            addRecentOccasion(occ.id);
+          }
+          window.location.href = `templates.html?occasion=${t.occ}`;
+        });
+        trendingRow.appendChild(card);
+      });
+    }
+
+    // ── Popular Wishes ──────────────────────────────────
+    const wishesRow = document.getElementById('popularWishesRow');
+    if (wishesRow) {
+      const samples = [
+        getWishesForOccasion('birthday').find(w => w.category === 'heartfelt'),
+        getWishesForOccasion('eid').find(w => w.category === 'religious'),
+        getWishesForOccasion('congratulations').find(w => w.category === 'short'),
+      ].filter(Boolean);
+
+      samples.forEach(wish => {
+        const card = document.createElement('div');
+        card.className = 'wish-card mx-3';
+        card.innerHTML = `
+          <div class="wish-category-badge">${wish.category}</div>
+          <p class="wish-text">${wish.text}</p>
+        `;
+        wishesRow.appendChild(card);
+      });
+    }
+
+    // ── Recently used section ────────────────────────────
+    const recentIds = getRecentOccasions();
+    if (recentIds.length) {
+      const recentSection = document.getElementById('recentSection');
+      const recentRow = document.getElementById('recentRow');
+      if (recentSection) recentSection.style.display = '';
+      recentIds.forEach(id => {
+        const occ = getOccasionById(id);
+        if (!occ || !recentRow) return;
+        const item = document.createElement('a');
+        item.href = `templates.html?occasion=${id}`;
+        item.className = 'd-flex flex-column align-items-center gap-1 text-decoration-none';
+        item.style.cssText = 'flex:0 0 auto;width:72px;';
+        item.innerHTML = `
+          <div style="width:64px;height:64px;border-radius:var(--radius-lg);display:flex;align-items:center;
+                      justify-content:center;font-size:1.6rem;background:linear-gradient(145deg,${occ.color}33,${occ.color}22);
+                      border:1px solid ${occ.color}33">
+            <i class="bi ${occ.icon}" style="color:${occ.color}"></i>
+          </div>
+          <span style="font-size:.7rem;font-weight:600;color:var(--text-muted);text-align:center;">${occ.name}</span>
+        `;
+        recentRow.appendChild(item);
+      });
+    }
+
+    // ── Favorites teaser ─────────────────────────────────
+    const favIds = getFavoriteTemplateIds();
+    if (favIds.length) {
+      document.getElementById('favSection').style.display = '';
+      const favRow = document.getElementById('favRow');
+      favIds.slice(0, 4).forEach(tid => {
+        const tmpl = getTemplateById(tid);
+        if (!tmpl || !favRow) return;
+        const card = document.createElement('div');
+        card.className = 'hero-card-preview';
+        card.style.cssText = `background:linear-gradient(145deg,${tmpl.gradient[0]},${tmpl.gradient[1]});width:110px;height:138px;cursor:pointer;flex:0 0 auto;`;
+        card.innerHTML = `<div class="hero-card-inner">
+          <div class="card-emoji">${tmpl.emoji}</div>
+          <div class="card-label" style="font-size:.65rem">${tmpl.name}</div>
+        </div>`;
+        card.addEventListener('click', () => {
+          AppState.update({ selectedOccasion: getOccasionById(tmpl.occasionId), selectedTemplate: cloneTemplate(tid) });
+          window.location.href = 'details.html';
+        });
+        favRow.appendChild(card);
+      });
+    }
+
+    // ── Global search ─────────────────────────────────────
+    document.getElementById('btnHeaderSearch')?.addEventListener('click', () => {
+      bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('globalSearch')).show();
+      setTimeout(() => document.getElementById('globalSearchInput')?.focus(), 300);
+    });
+
+    document.getElementById('globalSearchInput')?.addEventListener('input', function () {
+      const q = this.value.trim().toLowerCase();
+      const results = document.getElementById('globalSearchResults');
+      if (!results) return;
+      if (!q) { results.innerHTML = '<p class="text-muted-custom text-center small pt-3">Type to search occasions, messages...</p>'; return; }
+
+      const occMatches = searchOccasions(q).slice(0, 5);
+      let html = '';
+      if (occMatches.length) {
+        html += '<p class="text-muted-custom small fw-bold mb-2">Occasions</p>';
+        occMatches.forEach(o => {
+          html += `<a href="templates.html?occasion=${o.id}" class="d-flex align-items-center gap-2 py-2 text-decoration-none" style="border-bottom:1px solid var(--border-light)">
+            <i class="bi ${o.icon}" style="color:${o.color};font-size:1.4rem"></i>
+            <div>
+              <div class="fw-bold small">${o.name}</div>
+              <div class="text-muted-custom" style="font-size:.7rem">${o.designCount} designs</div>
+            </div>
+          </a>`;
+        });
+      }
+
+      if (!occMatches.length) {
+        html = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">No results</div></div>';
+      }
+
+      results.innerHTML = html;
+    });
+
+  })();
+  </script>
+
+  <style>
+    .side-link {
+      display:flex; align-items:center; gap:.75rem;
+      padding:.75rem 1rem; border-radius:var(--radius);
+      color:var(--text); text-decoration:none;
+      font-weight:500; font-size:.95rem;
+      transition:var(--transition-fast);
+    }
+    .side-link:hover, .side-link.active { background:rgba(124,58,237,.15); color:var(--primary-light); }
+    .side-link i { font-size:1.1rem; }
+    .flex-1 { flex:1; }
+  </style>
+</body>
+</html>

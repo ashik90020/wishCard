@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0A1E">
+  <title>Your Details — Wishly</title>
+  <meta name="description" content="Enter your details and choose the perfect message for your wish card.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <script>
+    (function () {
+      const saved = localStorage.getItem('wishly_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#F8FAFC' : '#0F0A1E');
+    })();
+  </script>
+  <style>
+    /* Steps within details page */
+    .detail-step { display:none; }
+    .detail-step.active { display:block; }
+    .wish-list { display:flex;flex-direction:column;gap:.75rem; }
+    .write-own-card {
+      border-radius:var(--radius);border:1.5px dashed var(--border);
+      background:var(--bg-card);padding:1rem;cursor:pointer;
+      display:flex;align-items:center;gap:.75rem;
+      color:var(--text-muted);transition:var(--transition-fast);
+    }
+    .write-own-card:hover { border-color:var(--primary);color:var(--primary-light); }
+    .write-own-card i { font-size:1.4rem;flex-shrink:0; }
+    textarea.form-control-custom { min-height:120px; resize:vertical; }
+    .card-mini-preview {
+      border-radius:var(--radius-lg);overflow:hidden;
+      aspect-ratio:4/5;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:.5rem;
+      padding:1rem;text-align:center;box-shadow:var(--shadow);
+    }
+  </style>
+</head>
+<body class="has-bottom-nav has-step-bar">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <header class="app-header">
+    <button class="header-icon-btn me-1" id="detailsBackBtn" aria-label="Go back">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <span class="logo">Wishly ✨</span>
+    <div class="header-actions">
+      <button class="header-icon-btn" id="btnThemeToggle" aria-label="Toggle Night/Day Mode" title="Toggle Night/Day Mode">
+        <i class="bi bi-sun-fill" style="color:var(--secondary)"></i>
+      </button>
+      <div id="headerMiniPreview" style="width:36px;height:36px;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem"></div>
+    </div>
+  </header>
+
+  <!-- ── Step Bar ─────────────────────────────────────────── -->
+  <div class="step-bar">
+    <button class="step-back-btn" id="stepBackBtn" aria-label="Go back"><i class="bi bi-chevron-left"></i></button>
+    <div class="step-info">
+      <div class="step-label" id="detailStepLabel">Step 3 of 6</div>
+      <div class="step-title" id="detailStepTitle">Your Details</div>
+    </div>
+    <div class="step-progress-track">
+      <div class="step-progress-fill" id="detailProgressFill" style="width:50%"></div>
+    </div>
+  </div>
+
+  <main class="page-content with-step-bar">
+
+    <!-- ─────────────────────────────────────────────────────
+         DETAIL STEP 1: Recipient Info
+    ─────────────────────────────────────────────────────── -->
+    <div class="detail-step active" id="stepRecipient">
+      <div class="px-3 pt-4 pb-2">
+        <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:.25rem">Tell us who you're wishing 🎉</h2>
+        <p class="text-muted-custom small mb-0">This will appear on the card.</p>
+      </div>
+
+      <!-- Mini card preview -->
+      <div class="px-3 mb-3">
+        <div class="card-mini-preview" id="recipientPreviewCard" style="max-width:200px;margin:0 auto">
+          <div id="rpEmoji" style="font-size:2.5rem">🎉</div>
+          <div id="rpHeader" style="font-size:.9rem;font-weight:700;color:rgba(255,255,255,.9)"></div>
+          <div id="rpName" style="font-size:1.2rem;font-weight:900;color:#fff">Your Name</div>
+          <div id="rpSender" style="font-size:.7rem;color:rgba(255,255,255,.7);display:none"></div>
+        </div>
+      </div>
+
+      <div class="px-3">
+        <!-- Recipient Name -->
+        <div class="form-group">
+          <label class="form-label-custom" for="recipientName">
+            Recipient Name <span style="color:var(--danger)">*</span>
+          </label>
+          <input type="text" id="recipientName" class="form-control-custom"
+                 placeholder="e.g. Ayesha" maxlength="40"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 aria-required="true">
+          <div class="field-error" id="recipientNameError">Please enter the recipient's name.</div>
+        </div>
+
+        <!-- Date (optional) -->
+        <div class="form-group">
+          <label class="form-label-custom" for="cardDate">
+            Date <span class="text-muted-custom" style="font-weight:400">(optional)</span>
+          </label>
+          <input type="date" id="cardDate" class="form-control-custom"
+                 aria-label="Card date (optional)">
+        </div>
+
+        <!-- Sender Name -->
+        <div class="form-group">
+          <label class="form-label-custom" for="senderName">
+            Your Name <span class="text-muted-custom" style="font-weight:400">(optional)</span>
+          </label>
+          <input type="text" id="senderName" class="form-control-custom"
+                 placeholder="e.g. Shakib (appears as 'With love, Shakib')"
+                 maxlength="40" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="sticky-bottom-cta">
+        <button id="btnNextToMessage" class="btn-primary-custom btn-full">
+          Next: Choose Message <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────
+         DETAIL STEP 2: Message / Wish Selection
+    ─────────────────────────────────────────────────────── -->
+    <div class="detail-step" id="stepMessage">
+      <div class="px-3 pt-4 pb-2">
+        <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:.25rem">Choose a Wish ✍️</h2>
+        <p class="text-muted-custom small mb-0">Tap a message to select it.</p>
+      </div>
+
+      <!-- Wish category chips -->
+      <div class="filter-chips" id="wishCategoryChips" role="tablist">
+        <!-- JS rendered -->
+      </div>
+
+      <!-- Wish count -->
+      <div class="px-3 mt-2 mb-1">
+        <p class="text-muted-custom small mb-0" id="wishCount">Loading...</p>
+      </div>
+
+      <!-- Write your own (top of list) -->
+      <div class="px-3 mb-2">
+        <div class="write-own-card" id="btnWriteOwn" role="button" tabindex="0" aria-label="Write your own message">
+          <i class="bi bi-pencil-square"></i>
+          <div>
+            <div class="fw-bold small">Write your own</div>
+            <div class="text-muted-custom" style="font-size:.75rem">Create a personal message</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wish cards list -->
+      <div class="wish-list px-3" id="wishList" role="list">
+        <!-- JS rendered -->
+      </div>
+
+      <div style="height:2rem"></div>
+
+      <!-- Sticky CTA -->
+      <div class="sticky-bottom-cta">
+        <div class="d-flex gap-2">
+          <button id="btnBackToDetails" class="btn-secondary-custom" style="min-height:52px;width:52px;padding:0;justify-content:center">
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <button id="btnGoToEditor" class="btn-primary-custom flex-1" disabled>
+            Customize Card <i class="bi bi-brush ms-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────
+         WRITE OWN MESSAGE (inline form, hidden initially)
+    ─────────────────────────────────────────────────────── -->
+    <div class="detail-step" id="stepCustomMessage">
+      <div class="px-3 pt-4 pb-2">
+        <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:.25rem">Write Your Message ✍️</h2>
+        <p class="text-muted-custom small mb-0">Your personal message for the card.</p>
+      </div>
+      <div class="px-3">
+        <div class="form-group">
+          <label class="form-label-custom" for="customMessageArea">Your message</label>
+          <textarea id="customMessageArea" class="form-control-custom"
+                    placeholder="Write your heartfelt message here..." maxlength="300"
+                    rows="5" aria-label="Your custom card message"></textarea>
+          <div class="char-count"><span id="customMsgCount">0</span> / 300</div>
+          <div class="field-error" id="customMsgError">Please write a message or choose one from the list.</div>
+        </div>
+      </div>
+      <div class="sticky-bottom-cta">
+        <div class="d-flex gap-2">
+          <button id="btnBackToWishList" class="btn-secondary-custom" style="min-height:52px;width:52px;padding:0;justify-content:center">
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <button id="btnUseCustomMessage" class="btn-primary-custom flex-1">
+            Use This Message <i class="bi bi-check2 ms-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Bottom Nav ──────────────────────────────────────── -->
+  <nav class="bottom-nav" role="navigation">
+    <a href="index.html"     class="bottom-nav-item"><i class="bi bi-house"></i><span>Home</span></a>
+    <a href="occasions.html" class="bottom-nav-item"><i class="bi bi-grid"></i><span>Explore</span></a>
+    <a href="occasions.html" class="bottom-nav-item d-flex align-items-center justify-content-center" style="flex:0 0 auto">
+      <div class="bottom-nav-create"><i class="bi bi-plus-lg"></i></div>
+    </a>
+    <a href="favorites.html" class="bottom-nav-item"><i class="bi bi-heart"></i><span>Favorites</span></a>
+    <a href="occasions.html" class="bottom-nav-item"><i class="bi bi-search"></i><span>Search</span></a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/data/occasions.js"></script>
+  <script src="assets/js/data/templates.js"></script>
+  <script src="assets/js/data/wishes.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/protection.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Guard: require template ───────────────────────────
+    const occasion = AppState.selectedOccasion || loadCardState()?.selectedOccasion;
+    const template = AppState.selectedTemplate || loadCardState()?.selectedTemplate;
+
+    if (!occasion || !template) {
+      window.location.href = 'occasions.html';
+      return;
+    }
+
+    if (!AppState.selectedOccasion) AppState.restore(loadCardState());
+
+    // ── Local step state (within this page) ──────────────
+    let currentDetailStep = 'recipient'; // 'recipient' | 'message' | 'customMessage'
+    let selectedWishId    = null;
+    let selectedWishText  = '';
+    let useCustom         = false;
+
+    // Pre-fill from AppState
+    const recipientInput = document.getElementById('recipientName');
+    const senderInput    = document.getElementById('senderName');
+    const dateInput      = document.getElementById('cardDate');
+
+    if (recipientInput) recipientInput.value = AppState.recipientName || '';
+    if (senderInput)    senderInput.value    = AppState.senderName    || '';
+    if (dateInput)      dateInput.value      = AppState.selectedDate  || '';
+
+    // ── Mini card preview ─────────────────────────────────
+    function updateMiniPreview() {
+      const tmpl = AppState.selectedTemplate || template;
+      const pCard = document.getElementById('recipientPreviewCard');
+      if (pCard && tmpl?.gradient) {
+        pCard.style.background = `linear-gradient(145deg,${tmpl.gradient[0]},${tmpl.gradient[1]})`;
+      }
+      const emoji = tmpl?.emoji || '🎉';
+      const el = document.getElementById('rpEmoji');
+      if (el) el.textContent = emoji;
+
+      const headerEl = tmpl?.elements?.find(e => e.role === 'header');
+      const rpHeader = document.getElementById('rpHeader');
+      if (rpHeader) rpHeader.textContent = headerEl?.content || `Happy ${occasion.name}`;
+
+      const rpName = document.getElementById('rpName');
+      const recipVal = recipientInput?.value.trim() || 'Your Name';
+      if (rpName) rpName.textContent = recipVal;
+
+      const rpSender = document.getElementById('rpSender');
+      const senderVal = senderInput?.value.trim();
+      if (rpSender) {
+        if (senderVal) {
+          rpSender.textContent = `With love, ${senderVal}`;
+          rpSender.style.display = '';
+        } else {
+          rpSender.style.display = 'none';
+        }
+      }
+
+      // Header mini badge preview
+      const hm = document.getElementById('headerMiniPreview');
+      if (hm && tmpl?.gradient) {
+        hm.style.background = `linear-gradient(145deg,${tmpl.gradient[0]},${tmpl.gradient[1]})`;
+        hm.textContent = emoji;
+        hm.title = tmpl.name;
+      }
+    }
+
+    updateMiniPreview();
+    recipientInput?.addEventListener('input', updateMiniPreview);
+    senderInput?.addEventListener('input', updateMiniPreview);
+
+    // ── Step navigation ───────────────────────────────────
+    function showStep(step) {
+      currentDetailStep = step;
+      document.querySelectorAll('.detail-step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step${capitalize(step)}`)?.classList.add('active');
+
+      // Update step bar
+      const stepMap = { recipient: { n:3, fill:'50%', title:'Your Details' },
+                        message:   { n:4, fill:'66.67%', title:'Choose Message' },
+                        customMessage: { n:4, fill:'66.67%', title:'Write Message' } };
+      const info = stepMap[step] || stepMap.recipient;
+      document.getElementById('detailStepLabel').textContent  = `Step ${info.n} of 6`;
+      document.getElementById('detailStepTitle').textContent  = info.title;
+      document.getElementById('detailProgressFill').style.width = info.fill;
+    }
+
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // ── Back button ───────────────────────────────────────
+    document.getElementById('detailsBackBtn')?.addEventListener('click', () => {
+      if (currentDetailStep === 'recipient')     history.back();
+      else if (currentDetailStep === 'message')  showStep('recipient');
+      else if (currentDetailStep === 'customMessage') showStep('message');
+    });
+
+    document.getElementById('stepBackBtn')?.addEventListener('click', () => {
+      if (currentDetailStep === 'recipient')     history.back();
+      else if (currentDetailStep === 'message')  showStep('recipient');
+      else showStep('message');
+    });
+
+    // ── Step 1 → Step 2 ───────────────────────────────────
+    document.getElementById('btnNextToMessage')?.addEventListener('click', () => {
+      const name = recipientInput?.value.trim();
+      if (!name) {
+        document.getElementById('recipientNameError')?.classList.add('visible');
+        recipientInput?.classList.add('error');
+        recipientInput?.focus();
+        return;
+      }
+      document.getElementById('recipientNameError')?.classList.remove('visible');
+      recipientInput?.classList.remove('error');
+
+      AppState.update({
+        recipientName: name,
+        senderName:    senderInput?.value.trim() || '',
+        selectedDate:  dateInput?.value || '',
+        currentStep:   3,
+      });
+
+      renderWishList('all');
+      showStep('message');
+    });
+
+    // ── Write own ─────────────────────────────────────────
+    document.getElementById('btnWriteOwn')?.addEventListener('click', () => showStep('customMessage'));
+    document.getElementById('btnWriteOwn')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showStep('customMessage'); }
+    });
+
+    // ── Wish category chips ───────────────────────────────
+    const wishChipsContainer = document.getElementById('wishCategoryChips');
+    WISH_CATEGORIES.forEach((cat, i) => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (i === 0 ? ' active' : '');
+      chip.dataset.value = cat.id;
+      chip.textContent = cat.label;
+      wishChipsContainer.appendChild(chip);
+    });
+
+    wishChipsContainer.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      wishChipsContainer.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderWishList(chip.dataset.value);
+    });
+
+    // ── Render wish list ──────────────────────────────────
+    function renderWishList(category) {
+      const list = filterWishes(occasion.id, category);
+      const container = document.getElementById('wishList');
+      const countEl = document.getElementById('wishCount');
+      if (!container) return;
+
+      if (countEl) countEl.textContent = `${list.length} messages`;
+
+      container.innerHTML = '';
+
+      list.forEach(wish => {
+        const isFav = isWishFavorited(wish.id);
+        const card  = document.createElement('div');
+        card.className = 'wish-card' + (selectedWishId === wish.id ? ' selected' : '');
+        card.setAttribute('role', 'listitem');
+        card.dataset.wishId = wish.id;
+        card.innerHTML = `
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+            <span class="wish-category-badge">${wish.category}</span>
+            <button class="template-fav-btn" style="position:static;width:30px;height:30px;font-size:.85rem;background:transparent;border:none;flex-shrink:0;${isFav?'color:#F43F5E':''}"
+                    data-wish="${wish.id}" aria-label="${isFav?'Remove from favorites':'Add to favorites'}">
+              <i class="bi bi-heart${isFav?'-fill':''}"></i>
+            </button>
+          </div>
+          <p class="wish-text">${wish.text}</p>
+        `;
+
+        // Select wish
+        card.addEventListener('click', e => {
+          if (e.target.closest('[data-wish]')) return;
+          selectWish(wish);
+          // Visual feedback
+          container.querySelectorAll('.wish-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+        });
+
+        // Fav wish
+        card.querySelector('[data-wish]').addEventListener('click', e => {
+          e.stopPropagation();
+          const btn = e.currentTarget;
+          const nowFav = toggleFavoriteWish(wish.id);
+          btn.style.color = nowFav ? '#F43F5E' : '';
+          btn.querySelector('i').className = `bi bi-heart${nowFav ? '-fill' : ''}`;
+          showToast(nowFav ? 'Wish saved to favorites!' : 'Removed from favorites.', nowFav ? 'success' : 'info');
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function selectWish(wish) {
+      selectedWishId   = wish.id;
+      selectedWishText = wish.text;
+      useCustom        = false;
+      addRecentMessage(wish.id);
+
+      const goBtn = document.getElementById('btnGoToEditor');
+      if (goBtn) { goBtn.disabled = false; goBtn.textContent = ''; goBtn.innerHTML = 'Customize Card <i class="bi bi-brush ms-1"></i>'; }
+    }
+
+    // ── Step 2 navigation ─────────────────────────────────
+    document.getElementById('btnBackToDetails')?.addEventListener('click', () => showStep('recipient'));
+
+    document.getElementById('btnGoToEditor')?.addEventListener('click', () => {
+      if (!selectedWishId && !useCustom) {
+        showToast('Please select a message first.', 'warning');
+        return;
+      }
+      const wish = useCustom ? null : getWishById(occasion.id, selectedWishId);
+      AppState.update({
+        selectedWish:  wish,
+        customMessage: useCustom ? document.getElementById('customMessageArea')?.value.trim() : '',
+        currentStep:   4,
+      });
+      window.location.href = 'editor.html';
+    });
+
+    // ── Custom message step ───────────────────────────────
+    const customArea  = document.getElementById('customMessageArea');
+    const customCount = document.getElementById('customMsgCount');
+
+    customArea?.addEventListener('input', () => {
+      const len = customArea.value.length;
+      if (customCount) customCount.textContent = len;
+      if (len > 260) customArea.style.borderColor = 'var(--warning)';
+      else customArea.style.borderColor = '';
+    });
+
+    document.getElementById('btnBackToWishList')?.addEventListener('click', () => showStep('message'));
+
+    document.getElementById('btnUseCustomMessage')?.addEventListener('click', () => {
+      const msg = customArea?.value.trim();
+      if (!msg) {
+        document.getElementById('customMsgError')?.classList.add('visible');
+        customArea?.focus();
+        return;
+      }
+      document.getElementById('customMsgError')?.classList.remove('visible');
+      useCustom = true;
+      selectedWishId = null;
+      selectedWishText = msg;
+
+      AppState.update({
+        selectedWish:  null,
+        customMessage: msg,
+        currentStep:   4,
+      });
+      window.location.href = 'editor.html';
+    });
+
+    // Pre-fill custom message if returning
+    if (AppState.customMessage && customArea) {
+      customArea.value = AppState.customMessage;
+      if (customCount) customCount.textContent = AppState.customMessage.length;
+    }
+
+  })();
+  </script>
+</body>
+</html>

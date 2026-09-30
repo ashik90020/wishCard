@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0F0A1E">
+  <title>Choose Design — Wishly</title>
+  <meta name="description" content="Choose a stunning card design for your personalised wish.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <script>
+    (function () {
+      const saved = localStorage.getItem('wishly_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'light' ? '#F8FAFC' : '#0F0A1E');
+    })();
+  </script>
+</head>
+<body class="has-bottom-nav has-step-bar">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <header class="app-header">
+    <a href="occasions.html" class="header-icon-btn me-1" aria-label="Back">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <span class="logo">Wishly ✨</span>
+    <div class="header-actions">
+      <button class="header-icon-btn" id="btnThemeToggle" aria-label="Toggle Night/Day Mode" title="Toggle Night/Day Mode">
+        <i class="bi bi-sun-fill" style="color:var(--secondary)"></i>
+      </button>
+      <button class="header-icon-btn" id="btnFavFilter" aria-label="Show favorites" title="Show favorites">
+        <i class="bi bi-heart"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Step Bar ─────────────────────────────────────────── -->
+  <div class="step-bar">
+    <button class="step-back-btn" aria-label="Go back"><i class="bi bi-chevron-left"></i></button>
+    <div class="step-info">
+      <div class="step-label">Step 2 of 6</div>
+      <div class="step-title" id="stepTitle">Choose Design</div>
+    </div>
+    <div class="step-progress-track">
+      <div class="step-progress-fill" style="width:33.33%"></div>
+    </div>
+  </div>
+
+  <!-- ── Full-screen Template Preview ─────────────────────── -->
+  <div id="templatePreviewOverlay" class="d-none" style="
+    position:fixed;inset:0;z-index:2000;background:var(--bg);
+    display:flex;flex-direction:column;
+  ">
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.75rem;border-bottom:1px solid var(--border-light);flex-shrink:0">
+      <button id="btnClosePreview" class="header-icon-btn" aria-label="Close preview"><i class="bi bi-x-lg"></i></button>
+      <span id="previewTemplateName" class="fw-bold" style="flex:1;text-align:center"></span>
+      <button id="btnToggleFavPreview" class="header-icon-btn" aria-label="Favorite">
+        <i class="bi bi-heart"></i>
+      </button>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow:hidden">
+      <div id="previewCard" style="
+        width:min(300px,72vw);aspect-ratio:4/5;border-radius:var(--radius-lg);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:1rem;padding:1.5rem;text-align:center;box-shadow:var(--shadow-lg);
+      ">
+        <div id="previewCardEmoji" style="font-size:3.5rem"></div>
+        <div id="previewCardTitle" style="font-size:1.3rem;font-weight:800;color:#fff;line-height:1.2"></div>
+        <div id="previewCardName" style="font-size:1.6rem;font-weight:900;color:rgba(255,255,255,.9)"></div>
+        <div id="previewCardMsg" style="font-size:.8rem;color:rgba(255,255,255,.75);line-height:1.5"></div>
+      </div>
+    </div>
+    <div style="padding:1rem 1.25rem;padding-bottom:calc(1rem + env(safe-area-inset-bottom));flex-shrink:0">
+      <button id="btnUseThisCard" class="btn-primary-custom btn-full">
+        <i class="bi bi-check2-circle"></i> Use This Card
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <main class="page-content with-step-bar">
+
+    <!-- Occasion header -->
+    <div class="px-3 pt-3 mb-2 d-flex align-items-center gap-2">
+      <div id="occasionIconBadge" style="width:40px;height:40px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:1.3rem"></div>
+      <div>
+        <h1 style="font-size:1.1rem;font-weight:800;margin-bottom:2px" id="occasionTitle">Choose Design</h1>
+        <p class="text-muted-custom small mb-0" id="templateCount">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Category filter chips -->
+    <div class="filter-chips" id="templateCategoryChips" role="tablist">
+      <!-- JS rendered -->
+    </div>
+
+    <!-- Template Grid -->
+    <div class="template-grid mt-3" id="templateGrid" role="list">
+      <!-- JS rendered -->
+    </div>
+
+    <!-- Empty state -->
+    <div id="noTemplateResults" class="empty-state d-none">
+      <div class="empty-state-icon">🎨</div>
+      <div class="empty-state-title">No designs in this filter</div>
+      <div class="empty-state-text">Try "All" to see every design.</div>
+    </div>
+
+    <div style="height:2rem"></div>
+
+  </main>
+
+  <!-- ── Bottom Navigation ─────────────────────────────────── -->
+  <nav class="bottom-nav" role="navigation">
+    <a href="index.html"     class="bottom-nav-item" data-page="index.html"><i class="bi bi-house"></i><span>Home</span></a>
+    <a href="occasions.html" class="bottom-nav-item active"><i class="bi bi-grid-fill"></i><span>Explore</span></a>
+    <a href="occasions.html" class="bottom-nav-item d-flex align-items-center justify-content-center" style="flex:0 0 auto">
+      <div class="bottom-nav-create" aria-label="Create"><i class="bi bi-plus-lg"></i></div>
+    </a>
+    <a href="favorites.html" class="bottom-nav-item" data-page="favorites.html"><i class="bi bi-heart"></i><span>Favorites</span></a>
+    <a href="occasions.html" class="bottom-nav-item"><i class="bi bi-search"></i><span>Search</span></a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/data/occasions.js"></script>
+  <script src="assets/js/data/templates.js"></script>
+  <script src="assets/js/data/wishes.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/protection.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Resolve occasion from URL or AppState ─────────────
+    const params   = new URLSearchParams(window.location.search);
+    const occId    = params.get('occasion') || AppState.selectedOccasion?.id || 'birthday';
+    const occasion = getOccasionById(occId) || OCCASIONS[0];
+
+    // Restore AppState if navigating directly via URL
+    if (!AppState.selectedOccasion) {
+      AppState.update({ selectedOccasion: occasion });
+    }
+
+    // ── UI setup ──────────────────────────────────────────
+    document.title = `${occasion.name} Cards — Wishly`;
+    const occasionTitle = document.getElementById('occasionTitle');
+    const stepTitle     = document.getElementById('stepTitle');
+    const iconBadge     = document.getElementById('occasionIconBadge');
+    if (occasionTitle) occasionTitle.textContent = `${occasion.name} Cards`;
+    if (stepTitle) stepTitle.textContent = `${occasion.name} Designs`;
+    if (iconBadge) {
+      iconBadge.style.background = `${occasion.color}22`;
+      iconBadge.style.border = `1px solid ${occasion.color}44`;
+      iconBadge.innerHTML = `<i class="bi ${occasion.icon}" style="color:${occasion.color}"></i>`;
+    }
+
+    // ── Render template category chips ────────────────────
+    const chipsContainer = document.getElementById('templateCategoryChips');
+    let showFavOnly = false;
+    let currentCategory = 'all';
+
+    TEMPLATE_CATEGORIES.forEach((cat, i) => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (i === 0 ? ' active' : '');
+      chip.dataset.value = cat.id;
+      chip.textContent = cat.label;
+      chipsContainer.appendChild(chip);
+    });
+
+    chipsContainer.addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      chipsContainer.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentCategory = chip.dataset.value;
+      showFavOnly = false;
+      document.getElementById('btnFavFilter')?.querySelector('i')?.classList.replace('bi-heart-fill','bi-heart');
+      renderTemplates();
+    });
+
+    // ── Favorites filter toggle ───────────────────────────
+    document.getElementById('btnFavFilter')?.addEventListener('click', function () {
+      showFavOnly = !showFavOnly;
+      this.querySelector('i').className = showFavOnly ? 'bi bi-heart-fill' : 'bi bi-heart';
+      if (showFavOnly) this.style.color = '#F43F5E'; else this.style.color = '';
+      renderTemplates();
+    });
+
+    // ── Render templates ──────────────────────────────────
+    let activePreviewId = null;
+
+    function renderTemplates() {
+      const grid      = document.getElementById('templateGrid');
+      const noResults = document.getElementById('noTemplateResults');
+      const countEl   = document.getElementById('templateCount');
+      if (!grid) return;
+
+      let list = filterTemplates(occasion.id, currentCategory);
+
+      if (showFavOnly) {
+        const favIds = getFavoriteTemplateIds();
+        list = list.filter(t => favIds.includes(t.id));
+      }
+
+      grid.innerHTML = '';
+
+      if (!list.length) {
+        noResults?.classList.remove('d-none');
+        if (countEl) countEl.textContent = '0 designs';
+        return;
+      }
+
+      noResults?.classList.add('d-none');
+      if (countEl) countEl.textContent = `${list.length} design${list.length !== 1 ? 's' : ''}`;
+
+      list.forEach(tmpl => {
+        const isFav = isTemplateFavorited(tmpl.id);
+        const card  = document.createElement('div');
+        card.className = 'template-card';
+        card.setAttribute('role', 'listitem');
+        card.setAttribute('aria-label', tmpl.name);
+        card.style.background = `linear-gradient(145deg, ${tmpl.gradient[0]}, ${tmpl.gradient[1]})`;
+
+        card.innerHTML = `
+          <button class="template-fav-btn ${isFav ? 'active' : ''}" data-tmpl="${tmpl.id}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+            <i class="bi bi-heart${isFav ? '-fill' : ''}"></i>
+          </button>
+          <div class="template-canvas-preview">
+            <div class="template-preview-emoji">${tmpl.emoji}</div>
+            <div class="template-preview-text">${tmpl.elements?.find(e=>e.role==='header')?.content || 'Happy '+occasion.name}</div>
+            <div class="template-preview-name">${tmpl.category}</div>
+          </div>
+          <div class="template-footer">
+            <span class="template-name">${tmpl.name}</span>
+            <button class="template-use-btn" data-tmpl="${tmpl.id}">Use this</button>
+          </div>
+        `;
+
+        // Tap card → open full-screen preview
+        card.addEventListener('click', e => {
+          if (e.target.closest('.template-fav-btn') || e.target.closest('.template-use-btn')) return;
+          openTemplatePreview(tmpl);
+        });
+
+        // Fav button
+        card.querySelector('.template-fav-btn').addEventListener('click', e => {
+          e.stopPropagation();
+          const btn = e.currentTarget;
+          const nowFav = toggleFavoriteTemplate(tmpl.id);
+          btn.classList.toggle('active', nowFav);
+          btn.querySelector('i').className = `bi bi-heart${nowFav ? '-fill' : ''}`;
+          btn.setAttribute('aria-label', nowFav ? 'Remove from favorites' : 'Add to favorites');
+          showToast(nowFav ? 'Added to favorites! ❤️' : 'Removed from favorites.', nowFav ? 'success' : 'info');
+        });
+
+        // Use button
+        card.querySelector('.template-use-btn').addEventListener('click', e => {
+          e.stopPropagation();
+          selectTemplate(tmpl);
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    // ── Full-screen preview ───────────────────────────────
+    function openTemplatePreview(tmpl) {
+      activePreviewId = tmpl.id;
+      const overlay = document.getElementById('templatePreviewOverlay');
+      if (!overlay) return;
+
+      overlay.classList.remove('d-none');
+      overlay.style.display = 'flex';
+
+      document.getElementById('previewTemplateName').textContent = tmpl.name;
+      document.getElementById('previewCardEmoji').textContent = tmpl.emoji;
+
+      const headerEl = tmpl.elements?.find(e => e.role === 'header');
+      document.getElementById('previewCardTitle').textContent = headerEl?.content || `Happy ${occasion.name}`;
+
+      const isFav = isTemplateFavorited(tmpl.id);
+      const favBtn = document.getElementById('btnToggleFavPreview');
+      if (favBtn) {
+        favBtn.querySelector('i').className = `bi bi-heart${isFav ? '-fill' : ''}`;
+        if (isFav) favBtn.style.color = '#F43F5E'; else favBtn.style.color = '';
+      }
+
+      // Sample recipient preview
+      const nameEl = document.getElementById('previewCardName');
+      const recip = AppState.recipientName || 'Your Name';
+      if (nameEl) nameEl.textContent = recip;
+
+      // Sample message
+      const msgEl = document.getElementById('previewCardMsg');
+      const wishes = getWishesForOccasion(occasion.id);
+      const sample = wishes.find(w => w.category === 'short') || wishes[0];
+      if (msgEl && sample) msgEl.textContent = sample.text.substring(0, 90) + '...';
+
+      // Apply gradient
+      const previewCard = document.getElementById('previewCard');
+      if (previewCard) previewCard.style.background = `linear-gradient(145deg, ${tmpl.gradient[0]}, ${tmpl.gradient[1]})`;
+    }
+
+    document.getElementById('btnClosePreview')?.addEventListener('click', () => {
+      const overlay = document.getElementById('templatePreviewOverlay');
+      if (overlay) { overlay.classList.add('d-none'); overlay.style.display = 'none'; }
+      activePreviewId = null;
+    });
+
+    document.getElementById('btnToggleFavPreview')?.addEventListener('click', function () {
+      if (!activePreviewId) return;
+      const nowFav = toggleFavoriteTemplate(activePreviewId);
+      this.querySelector('i').className = `bi bi-heart${nowFav ? '-fill' : ''}`;
+      this.style.color = nowFav ? '#F43F5E' : '';
+      showToast(nowFav ? 'Added to favorites! ❤️' : 'Removed.', nowFav ? 'success' : 'info');
+      // Update grid card too
+      document.querySelector(`.template-fav-btn[data-tmpl="${activePreviewId}"]`)?.classList.toggle('active', nowFav);
+    });
+
+    document.getElementById('btnUseThisCard')?.addEventListener('click', () => {
+      if (!activePreviewId) return;
+      const tmpl = getTemplateById(activePreviewId);
+      if (tmpl) selectTemplate(tmpl);
+    });
+
+    function selectTemplate(tmpl) {
+      const cloned = cloneTemplate(tmpl.id);
+      AppState.update({ selectedTemplate: cloned, currentStep: 2 });
+      addRecentTemplate(tmpl.id);
+      window.location.href = 'details.html';
+    }
+
+    // Initial render
+    renderTemplates();
+  })();
+  </script>
+</body>
+</html>

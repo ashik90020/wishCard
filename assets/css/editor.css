@@ -1,0 +1,424 @@
+/* ============================================================
+   editor.css — Card Editor Specific Styles
+   Mobile-first canvas editor.
+   ============================================================ */
+
+/* ── Editor Layout ────────────────────────────────────────── */
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport height */
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── Editor Top Bar ───────────────────────────────────────── */
+.editor-topbar {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 10;
+}
+
+.editor-topbar .card-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.editor-action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.editor-action-btn:not(:disabled):active {
+  background: var(--border-light);
+}
+
+/* ── Canvas Area ──────────────────────────────────────────── */
+.editor-canvas-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--canvas-area-bg, repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%, transparent 0% 50%) 0 0 / 20px 20px);
+  position: relative;
+  touch-action: none; /* prevent page scroll during canvas gestures */
+}
+
+.canvas-wrapper {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.06);
+  /* Size is set dynamically by JS */
+}
+
+#editorCanvas {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* Selected element overlay outline */
+.canvas-wrapper.has-selection #editorCanvas {
+  cursor: move;
+}
+
+/* ── Editor Toolbar (Bottom) ──────────────────────────────── */
+.editor-toolbar {
+  flex-shrink: 0;
+  height: 72px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 0.5rem;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 10;
+}
+
+.toolbar-tool {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border-radius: var(--radius-sm);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.toolbar-tool i { font-size: 1.3rem; }
+
+.toolbar-tool.active {
+  color: var(--primary-light);
+}
+
+.toolbar-tool.active::before {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 25%; right: 25%;
+  height: 2px;
+  background: var(--primary-light);
+  border-radius: 1px;
+}
+
+.toolbar-tool:active {
+  opacity: 0.7;
+  transform: scale(0.93);
+}
+
+/* ── Bottom Sheet Panels ──────────────────────────────────── */
+.editor-sheet .offcanvas-body {
+  padding: 0 1.25rem 1.5rem;
+}
+
+/* Text controls */
+.text-control-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.text-control-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 56px;
+}
+
+.font-size-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.font-size-ctrl input[type="range"] {
+  flex: 1;
+  accent-color: var(--primary);
+  height: 4px;
+}
+
+.font-size-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 28px;
+  text-align: right;
+}
+
+.color-palette {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.color-swatch:active { transform: scale(0.88); }
+
+.color-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+.color-custom-input {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px dashed var(--border);
+  background: transparent;
+  overflow: hidden;
+  padding: 0;
+}
+
+.color-custom-input::-webkit-color-swatch-wrapper { padding: 0; }
+.color-custom-input::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+.font-select {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  padding: 0.65rem 1rem;
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.align-btns, .style-btns {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.toggle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.toggle-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* Background swatches (gradient thumbnails) */
+.bg-swatch {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.bg-swatch:active { transform: scale(0.88); }
+
+.bg-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--primary);
+}
+
+/* Emoji grid */
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+}
+
+.emoji-btn {
+  height: 44px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--bg-card);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.emoji-btn:active { transform: scale(0.88); background: var(--bg-elevated); }
+
+/* Elements grid (shapes etc) */
+.elements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.element-btn {
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.element-btn i, .element-btn .el-emoji { font-size: 1.4rem; }
+.element-btn:active { background: var(--bg-elevated); transform: scale(0.95); }
+
+/* ── Preview Mode ─────────────────────────────────────────── */
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.preview-canvas-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-height: calc(100vh - 180px);
+}
+
+.preview-canvas-wrap canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  object-fit: contain;
+}
+
+.preview-actions {
+  width: 100%;
+  padding: 1rem 0;
+}
+
+/* ── Upload photo btn ─────────────────────────────────────── */
+.photo-upload-btn {
+  width: 100%;
+  height: 120px;
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border);
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-muted);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.photo-upload-btn:active {
+  border-color: var(--primary);
+  color: var(--primary-light);
+}
+
+.photo-upload-btn i { font-size: 2rem; }
+.photo-upload-btn span { font-size: 0.85rem; font-weight: 600; }
+
+/* ── Letter spacing control ───────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  width: 100%;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  margin-top: -7px;
+  box-shadow: 0 2px 6px rgba(124,58,237,0.4);
+  cursor: pointer;
+}
